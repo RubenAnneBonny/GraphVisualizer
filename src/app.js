@@ -1,9 +1,8 @@
 import { parseCp } from './cpParser.js';
 import { initGraph, updateStyle, loadGraph, clearGraph } from './graph.js';
 
-let directed    = false;
-let weighted    = false;
-let zeroIndexed = false;
+let directed = false;
+let weighted = false;
 let mode = 'manual';
 
 const directedToggle = document.getElementById('directed-toggle');
@@ -80,14 +79,10 @@ inputBtn.addEventListener('click', () => {
   manualSection.hidden = true;
 });
 
-zeroIndexedToggle.addEventListener('change', () => {
-  zeroIndexed = zeroIndexedToggle.checked;
-});
-
 parseBtn.addEventListener('click', () => {
   parseError.textContent = '';
   try {
-    const { nodes, edges } = parseCp(cpInput.value, weighted, zeroIndexed);
+    const { nodes, edges } = parseCp(cpInput.value, weighted, zeroIndexedToggle.checked);
     loadGraph(nodes, edges);
   } catch (err) {
     parseError.textContent = err.message;
