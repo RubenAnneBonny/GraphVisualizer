@@ -9,6 +9,8 @@ let getWeighted;
 let getMode;
 let onPendingSourceChange;
 
+const NODE_SIZE = 46;
+
 function nextNodeId() {
   const used = new Set(
     cy.nodes()
@@ -22,17 +24,16 @@ function nextNodeId() {
 }
 
 function flipEdge(edge) {
-  const { id, source, target, weight } = edge.data();
+  const { source, target } = edge.data();
+  // Flash yellow, then move endpoints
   edge.animate(
-    { style: { opacity: 0, width: 0 } },
-    { duration: 150, complete: () => {
-      edge.remove();
-      const newEdge = cy.add({
-        group: 'edges',
-        data: { id, source: target, target: source, weight },
-      });
-      newEdge.style({ opacity: 0, width: 0 });
-      newEdge.animate({ style: { opacity: 1, width: 2 } }, { duration: 250, easing: 'ease-out-cubic' });
+    { style: { 'line-color': '#f9e2af', 'target-arrow-color': '#f9e2af', width: 4 } },
+    { duration: 120, complete: () => {
+      edge.move({ source: target, target: source });
+      edge.animate(
+        { style: { 'line-color': '#64748b', 'target-arrow-color': '#64748b', width: 2 } },
+        { duration: 200 }
+      );
     }}
   );
 }
@@ -58,8 +59,20 @@ export function initGraph(options) {
     layout: { name: 'preset' },
     userZoomingEnabled: true,
     userPanningEnabled: true,
+    autounselectify: true,
     minZoom: 0.1,
     maxZoom: 5,
+  });
+
+  // Sync dot grid with pan/zoom
+  const canvasArea = document.querySelector('.canvas-area');
+  const BASE_GRID = 28;
+  cy.on('viewport', () => {
+    const pan  = cy.pan();
+    const zoom = cy.zoom();
+    const size = BASE_GRID * zoom;
+    canvasArea.style.backgroundSize     = `${size}px ${size}px`;
+    canvasArea.style.backgroundPosition = `${((pan.x % size) + size) % size}px ${((pan.y % size) + size) % size}px`;
   });
 
   cy.on('tapstart', () => { didDrag = false; });
@@ -84,7 +97,7 @@ export function initGraph(options) {
     });
     node.style({ opacity: 0, width: 4, height: 4 });
     node.animate(
-      { style: { opacity: 1, width: 36, height: 36 } },
+      { style: { opacity: 1, width: NODE_SIZE, height: NODE_SIZE } },
       { duration: 280, easing: 'ease-out-cubic' }
     );
   });
@@ -131,7 +144,7 @@ export function initGraph(options) {
     if (getDirected()) flipEdge(evt.target);
   });
 
-  // Right-click node: delete
+  // Right-click node: delete with shrink animation
   cy.on('cxttap', 'node', evt => {
     evt.originalEvent.preventDefault();
     const node = evt.target;
@@ -182,7 +195,10 @@ export function loadGraph(nodes, edges) {
     nodeList.forEach((node, i) => {
       node.style({ opacity: 0, width: 4, height: 4 });
       setTimeout(() => {
-        node.animate({ style: { opacity: 1, width: 36, height: 36 } }, { duration: 280, easing: 'ease-out-cubic' });
+        node.animate(
+          { style: { opacity: 1, width: NODE_SIZE, height: NODE_SIZE } },
+          { duration: 280, easing: 'ease-out-cubic' }
+        );
       }, i * 45);
     });
     const edgeList = cy.edges().toArray();
