@@ -9,7 +9,7 @@ let getDirected;
 let getWeighted;
 let getMode;
 let onPendingSourceChange;
-let edgeMenu, edgeFlipBtn, edgeDeleteBtn;
+let edgeMenu, edgeFlipBtn, edgeDeleteBtn, menuOverlay;
 
 function nextNodeId() {
   const used = new Set(
@@ -27,6 +27,7 @@ function showEdgeMenu(x, y, edge) {
   selectedEdge = edge;
   edgeFlipBtn.hidden = false;
   edgeMenu.hidden = false;
+  menuOverlay.style.display = 'block';
   const menuW = 160, menuH = 72;
   edgeMenu.style.left = `${Math.min(x, window.innerWidth  - menuW - 8)}px`;
   edgeMenu.style.top  = `${Math.min(y, window.innerHeight - menuH - 8)}px`;
@@ -34,11 +35,8 @@ function showEdgeMenu(x, y, edge) {
 
 function hideEdgeMenu() {
   edgeMenu.hidden = true;
+  menuOverlay.style.display = 'none';
   selectedEdge = null;
-}
-
-function isMenuOpen() {
-  return !edgeMenu.hidden;
 }
 
 function flipEdge(edge) {
@@ -74,6 +72,10 @@ export function initGraph(options) {
   edgeMenu      = document.getElementById('edge-menu');
   edgeFlipBtn   = document.getElementById('edge-flip-btn');
   edgeDeleteBtn = document.getElementById('edge-delete-btn');
+  menuOverlay   = document.getElementById('menu-overlay');
+
+  // Overlay click closes the menu (no other side effects)
+  menuOverlay.addEventListener('click', () => hideEdgeMenu());
 
   cy = cytoscape({
     container: document.getElementById('cy'),
@@ -89,16 +91,10 @@ export function initGraph(options) {
   cy.on('tapstart', () => { didDrag = false; });
   cy.on('drag', 'node', () => { didDrag = true; });
 
-  // Background tap: close menu (consuming the click) OR add node
   cy.on('tap', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
     if (evt.target !== cy) return;
-
-    if (isMenuOpen()) {
-      hideEdgeMenu();
-      return;
-    }
 
     if (pendingSource !== null) {
       clearPendingSource();
@@ -118,15 +114,9 @@ export function initGraph(options) {
     );
   });
 
-  // Node tap: close menu (consuming the click) OR start/complete edge
   cy.on('tap', 'node', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
-
-    if (isMenuOpen()) {
-      hideEdgeMenu();
-      return;
-    }
 
     const node = evt.target;
     const nodeId = node.id();
@@ -160,10 +150,8 @@ export function initGraph(options) {
     }
   });
 
-  // Node right-click: delete with animation
   cy.on('cxttap', 'node', evt => {
     evt.originalEvent.preventDefault();
-    hideEdgeMenu();
     const node = evt.target;
     if (pendingSource === node.id()) clearPendingSource();
     node.connectedEdges().animate({ style: { opacity: 0, width: 0 } }, { duration: 200 });
@@ -173,7 +161,6 @@ export function initGraph(options) {
     );
   });
 
-  // Edge right-click: immediate delete if undirected, menu if directed
   cy.on('cxttap', 'edge', evt => {
     evt.originalEvent.preventDefault();
     if (getDirected()) {
@@ -187,7 +174,6 @@ export function initGraph(options) {
     }
   });
 
-  // Hover glow
   cy.on('mouseover', 'node', evt => {
     if (!evt.target.hasClass('pending-source')) evt.target.addClass('hovering');
   });
@@ -195,15 +181,12 @@ export function initGraph(options) {
   cy.on('mouseover', 'edge', evt => evt.target.addClass('hovering'));
   cy.on('mouseout', 'edge', evt => evt.target.removeClass('hovering'));
 
-  // Context menu buttons
-  edgeFlipBtn.addEventListener('click', e => {
-    e.stopPropagation();
+  edgeFlipBtn.addEventListener('click', () => {
     if (selectedEdge) flipEdge(selectedEdge);
     hideEdgeMenu();
   });
 
-  edgeDeleteBtn.addEventListener('click', e => {
-    e.stopPropagation();
+  edgeDeleteBtn.addEventListener('click', () => {
     if (!selectedEdge) return;
     const edge = selectedEdge;
     hideEdgeMenu();
@@ -211,11 +194,6 @@ export function initGraph(options) {
       { style: { opacity: 0, width: 0 } },
       { duration: 200, complete: () => edge.remove() }
     );
-  });
-
-  // Clicking sidebar while menu open should close menu without side effects
-  document.addEventListener('click', e => {
-    if (!edgeMenu.contains(e.target)) hideEdgeMenu();
   });
 }
 
@@ -228,14 +206,8 @@ export function loadGraph(nodes, edges) {
   hideEdgeMenu();
   cy.elements().remove();
 
-  cy.add(nodes.map(n => ({
-    group: 'nodes',
-    data: { id: n.id, label: n.label },
-  })));
-  cy.add(edges.map(e => ({
-    group: 'edges',
-    data: { id: e.id, source: e.source, target: e.target, weight: e.weight },
-  })));
+  cy.add(nodes.map(n => ({ group: 'nodes', data: { id: n.id, label: n.label } })));
+  cy.add(edges.map(e => ({ group: 'edges', data: { id: e.id, source: e.source, target: e.target, weight: e.weight } })));
 
   edgeCounter = edges.length;
 
@@ -246,20 +218,16 @@ export function loadGraph(nodes, edges) {
     nodeList.forEach((node, i) => {
       node.style({ opacity: 0, width: 4, height: 4 });
       setTimeout(() => {
-        node.animate(
-          { style: { opacity: 1, width: 36, height: 36 } },
-          { duration: 280, easing: 'ease-out-cubic' }
-        );
+        node.animate({ style: { opacity: 1, width: 36, height: 36 } }, { duration: 280, easing: 'ease-out-cubic' });
       }, i * 45);
     });
-
     const edgeList = cy.edges().toArray();
-    const nodeDelay = nodeList.length * 45;
+    const delay = nodeList.length * 45;
     edgeList.forEach((edge, i) => {
       edge.style({ opacity: 0, width: 0 });
       setTimeout(() => {
         edge.animate({ style: { opacity: 1, width: 2 } }, { duration: 250 });
-      }, nodeDelay + i * 30);
+      }, delay + i * 30);
     });
   });
 

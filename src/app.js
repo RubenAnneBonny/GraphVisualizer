@@ -18,20 +18,20 @@ const cpInput        = document.getElementById('cp-input');
 const parseError     = document.getElementById('parse-error');
 const clearBtn       = document.getElementById('clear-btn');
 
-function a(cls, key, desc) {
-  return `<div class="action-item">
-    <kbd class="action-key ${cls}">${key}</kbd>
-    <span class="action-desc">${desc}</span>
+function a(color, key, desc) {
+  return `<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+    <kbd style="color:${color};background:${color}25;border:1px solid ${color}55;font:600 11px/1.2 inherit;padding:3px 8px;border-radius:5px;white-space:nowrap;font-style:normal;letter-spacing:0.01em">${key}</kbd>
+    <span style="font-size:12px;color:#6c7086">${desc}</span>
   </div>`;
 }
 
 function renderActions() {
   hintContent.innerHTML =
-    a('c1', 'Click canvas',    'add a node') +
-    a('c2', 'Click node',      'start drawing edge') +
-    a('c3', 'Click 2nd node',  'complete the edge') +
-    a('c4', 'Right-click node', 'delete it') +
-    a('c5', 'Right-click edge', directed ? 'flip or delete' : 'delete it');
+    a('#f38ba8', 'Click canvas',     'add a node') +
+    a('#fab387', 'Click node',       'start edge') +
+    a('#f9e2af', 'Click 2nd node',   'complete edge') +
+    a('#a6e3a1', 'Right-click node', 'delete') +
+    a('#89dceb', 'Right-click edge', directed ? 'flip or delete' : 'delete');
 }
 
 initGraph({

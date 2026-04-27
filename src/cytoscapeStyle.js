@@ -1,6 +1,12 @@
 export function buildStylesheet(directed, weighted) {
   return [
     {
+      selector: 'core',
+      style: {
+        'background-opacity': 0,
+      },
+    },
+    {
       selector: 'node',
       style: {
         'background-color': '#4a9eff',
