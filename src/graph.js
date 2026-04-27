@@ -25,10 +25,9 @@ function nextNodeId() {
 
 function showEdgeMenu(x, y, edge) {
   selectedEdge = edge;
-  edgeFlipBtn.hidden = !getDirected();
+  edgeFlipBtn.hidden = false;
   edgeMenu.hidden = false;
-  const menuW = 160;
-  const menuH = getDirected() ? 72 : 38;
+  const menuW = 160, menuH = 72;
   edgeMenu.style.left = `${Math.min(x, window.innerWidth  - menuW - 8)}px`;
   edgeMenu.style.top  = `${Math.min(y, window.innerHeight - menuH - 8)}px`;
 }
@@ -38,20 +37,24 @@ function hideEdgeMenu() {
   selectedEdge = null;
 }
 
+function isMenuOpen() {
+  return !edgeMenu.hidden;
+}
+
 function flipEdge(edge) {
   const { id, source, target, weight } = edge.data();
-  edge.animate({ style: { opacity: 0 } }, {
-    duration: 150,
-    complete: () => {
+  edge.animate(
+    { style: { opacity: 0, width: 0 } },
+    { duration: 150, complete: () => {
       edge.remove();
       const newEdge = cy.add({
         group: 'edges',
         data: { id, source: target, target: source, weight },
       });
-      newEdge.style({ opacity: 0 });
-      newEdge.animate({ style: { opacity: 1 } }, { duration: 200 });
-    },
-  });
+      newEdge.style({ opacity: 0, width: 0 });
+      newEdge.animate({ style: { opacity: 1, width: 2 } }, { duration: 250, easing: 'ease-out-cubic' });
+    }}
+  );
 }
 
 function clearPendingSource() {
@@ -86,11 +89,16 @@ export function initGraph(options) {
   cy.on('tapstart', () => { didDrag = false; });
   cy.on('drag', 'node', () => { didDrag = true; });
 
+  // Background tap: close menu (consuming the click) OR add node
   cy.on('tap', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
     if (evt.target !== cy) return;
-    hideEdgeMenu();
+
+    if (isMenuOpen()) {
+      hideEdgeMenu();
+      return;
+    }
 
     if (pendingSource !== null) {
       clearPendingSource();
@@ -106,14 +114,19 @@ export function initGraph(options) {
     node.style({ opacity: 0, width: 4, height: 4 });
     node.animate(
       { style: { opacity: 1, width: 36, height: 36 } },
-      { duration: 250, easing: 'ease-out-cubic' }
+      { duration: 280, easing: 'ease-out-cubic' }
     );
   });
 
+  // Node tap: close menu (consuming the click) OR start/complete edge
   cy.on('tap', 'node', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
-    hideEdgeMenu();
+
+    if (isMenuOpen()) {
+      hideEdgeMenu();
+      return;
+    }
 
     const node = evt.target;
     const nodeId = node.id();
@@ -141,31 +154,48 @@ export function initGraph(options) {
         group: 'edges',
         data: { id: edgeId, source: pendingSource, target: nodeId, weight },
       });
-      edge.style({ opacity: 0 });
-      edge.animate({ style: { opacity: 1 } }, { duration: 200 });
+      edge.style({ opacity: 0, width: 0 });
+      edge.animate({ style: { opacity: 1, width: 2 } }, { duration: 300, easing: 'ease-out-cubic' });
       clearPendingSource();
     }
   });
 
+  // Node right-click: delete with animation
   cy.on('cxttap', 'node', evt => {
     evt.originalEvent.preventDefault();
     hideEdgeMenu();
     const node = evt.target;
     if (pendingSource === node.id()) clearPendingSource();
-    node.connectedEdges().animate({ style: { opacity: 0 } }, { duration: 200 });
+    node.connectedEdges().animate({ style: { opacity: 0, width: 0 } }, { duration: 200 });
     node.animate(
       { style: { opacity: 0, width: 4, height: 4 } },
-      { duration: 200, easing: 'ease-in-cubic', complete: () => node.remove() }
+      { duration: 220, easing: 'ease-in-cubic', complete: () => node.remove() }
     );
   });
 
+  // Edge right-click: immediate delete if undirected, menu if directed
   cy.on('cxttap', 'edge', evt => {
     evt.originalEvent.preventDefault();
-    showEdgeMenu(evt.originalEvent.clientX, evt.originalEvent.clientY, evt.target);
+    if (getDirected()) {
+      showEdgeMenu(evt.originalEvent.clientX, evt.originalEvent.clientY, evt.target);
+    } else {
+      const edge = evt.target;
+      edge.animate(
+        { style: { opacity: 0, width: 0 } },
+        { duration: 200, complete: () => edge.remove() }
+      );
+    }
   });
 
-  document.addEventListener('click', hideEdgeMenu);
+  // Hover glow
+  cy.on('mouseover', 'node', evt => {
+    if (!evt.target.hasClass('pending-source')) evt.target.addClass('hovering');
+  });
+  cy.on('mouseout', 'node', evt => evt.target.removeClass('hovering'));
+  cy.on('mouseover', 'edge', evt => evt.target.addClass('hovering'));
+  cy.on('mouseout', 'edge', evt => evt.target.removeClass('hovering'));
 
+  // Context menu buttons
   edgeFlipBtn.addEventListener('click', e => {
     e.stopPropagation();
     if (selectedEdge) flipEdge(selectedEdge);
@@ -178,17 +208,19 @@ export function initGraph(options) {
     const edge = selectedEdge;
     hideEdgeMenu();
     edge.animate(
-      { style: { opacity: 0 } },
+      { style: { opacity: 0, width: 0 } },
       { duration: 200, complete: () => edge.remove() }
     );
+  });
+
+  // Clicking sidebar while menu open should close menu without side effects
+  document.addEventListener('click', e => {
+    if (!edgeMenu.contains(e.target)) hideEdgeMenu();
   });
 }
 
 export function updateStyle() {
   cy.style(buildStylesheet(getDirected(), getWeighted()));
-  if (!edgeMenu.hidden) {
-    edgeFlipBtn.hidden = !getDirected();
-  }
 }
 
 export function loadGraph(nodes, edges) {
@@ -200,7 +232,6 @@ export function loadGraph(nodes, edges) {
     group: 'nodes',
     data: { id: n.id, label: n.label },
   })));
-
   cy.add(edges.map(e => ({
     group: 'edges',
     data: { id: e.id, source: e.source, target: e.target, weight: e.weight },
@@ -208,12 +239,39 @@ export function loadGraph(nodes, edges) {
 
   edgeCounter = edges.length;
 
-  cy.layout({ name: 'cose', animate: false, randomize: true }).run();
+  const layout = cy.layout({ name: 'cose', animate: false, randomize: true });
+
+  layout.on('layoutstop', () => {
+    const nodeList = cy.nodes().toArray();
+    nodeList.forEach((node, i) => {
+      node.style({ opacity: 0, width: 4, height: 4 });
+      setTimeout(() => {
+        node.animate(
+          { style: { opacity: 1, width: 36, height: 36 } },
+          { duration: 280, easing: 'ease-out-cubic' }
+        );
+      }, i * 45);
+    });
+
+    const edgeList = cy.edges().toArray();
+    const nodeDelay = nodeList.length * 45;
+    edgeList.forEach((edge, i) => {
+      edge.style({ opacity: 0, width: 0 });
+      setTimeout(() => {
+        edge.animate({ style: { opacity: 1, width: 2 } }, { duration: 250 });
+      }, nodeDelay + i * 30);
+    });
+  });
+
+  layout.run();
 }
 
 export function clearGraph() {
   clearPendingSource();
   hideEdgeMenu();
-  cy.elements().remove();
+  const all = cy.elements();
   edgeCounter = 0;
+  if (all.length === 0) return;
+  all.animate({ style: { opacity: 0 } }, { duration: 280 });
+  setTimeout(() => cy.elements().remove(), 300);
 }

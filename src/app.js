@@ -7,45 +7,52 @@ let mode = 'manual';
 
 const directedToggle = document.getElementById('directed-toggle');
 const weightedToggle = document.getElementById('weighted-toggle');
-const manualBtn = document.getElementById('mode-manual');
-const inputBtn = document.getElementById('mode-input');
-const manualSection = document.getElementById('manual-section');
-const inputSection = document.getElementById('input-section');
-const hintContent = document.getElementById('hint-content');
-const parseBtn = document.getElementById('parse-btn');
-const cpInput = document.getElementById('cp-input');
-const parseError = document.getElementById('parse-error');
-const clearBtn = document.getElementById('clear-btn');
+const manualBtn      = document.getElementById('mode-manual');
+const inputBtn       = document.getElementById('mode-input');
+const manualSection  = document.getElementById('manual-section');
+const inputSection   = document.getElementById('input-section');
+const hintContent    = document.getElementById('hint-content');
+const drawStatus     = document.getElementById('draw-status');
+const parseBtn       = document.getElementById('parse-btn');
+const cpInput        = document.getElementById('cp-input');
+const parseError     = document.getElementById('parse-error');
+const clearBtn       = document.getElementById('clear-btn');
 
-function hint(color, text) {
-  return `<div class="hint-item"><span class="hint-dot ${color}"></span>${text}</div>`;
+function a(cls, key, desc) {
+  return `<div class="action-item">
+    <kbd class="action-key ${cls}">${key}</kbd>
+    <span class="action-desc">${desc}</span>
+  </div>`;
 }
 
-function setHint(pendingSourceId) {
-  if (pendingSourceId !== null) {
-    hintContent.innerHTML =
-      hint('orange', 'Click target node → complete edge') +
-      hint('muted',  'Click source again or canvas → cancel');
-  } else {
-    hintContent.innerHTML =
-      hint('blue',   'Click canvas → add node') +
-      hint('orange', 'Click node → start edge') +
-      hint('red',    'Right-click node → delete') +
-      hint('red',    'Right-click edge → flip / delete');
-  }
+function renderActions() {
+  hintContent.innerHTML =
+    a('c1', 'Click canvas',    'add a node') +
+    a('c2', 'Click node',      'start drawing edge') +
+    a('c3', 'Click 2nd node',  'complete the edge') +
+    a('c4', 'Right-click node', 'delete it') +
+    a('c5', 'Right-click edge', directed ? 'flip or delete' : 'delete it');
 }
 
 initGraph({
   getDirected: () => directed,
   getWeighted: () => weighted,
-  getMode: () => mode,
-  onPendingSourceChange: setHint,
+  getMode:     () => mode,
+  onPendingSourceChange: (sourceId) => {
+    if (sourceId !== null) {
+      drawStatus.textContent = `Drawing edge from node ${sourceId}…`;
+      drawStatus.hidden = false;
+    } else {
+      drawStatus.hidden = true;
+    }
+  },
 });
 
-setHint(null);
+renderActions();
 
 directedToggle.addEventListener('change', () => {
   directed = directedToggle.checked;
+  renderActions();
   updateStyle();
 });
 

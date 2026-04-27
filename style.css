@@ -48,7 +48,9 @@ html, body {
 .canvas-area {
   flex: 1;
   position: relative;
-  background: var(--bg-base);
+  background-color: var(--bg-base);
+  background-image: radial-gradient(circle, #3a3a52 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
 }
 
 #cy {
@@ -172,13 +174,57 @@ html, body {
   border-color: var(--text-muted);
 }
 
-/* ── Manual hint ── */
+/* ── Rainbow action list ── */
 
-.hint-box {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 12px;
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.action-key {
+  font-style: normal;
+  font-size: 11px;
+  font-family: var(--font);
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.action-key.c1 { color: #f38ba8; background: rgba(243,139,168,0.13); border: 1px solid rgba(243,139,168,0.28); }
+.action-key.c2 { color: #fab387; background: rgba(250,179,135,0.13); border: 1px solid rgba(250,179,135,0.28); }
+.action-key.c3 { color: #f9e2af; background: rgba(249,226,175,0.13); border: 1px solid rgba(249,226,175,0.28); }
+.action-key.c4 { color: #a6e3a1; background: rgba(166,227,161,0.13); border: 1px solid rgba(166,227,161,0.28); }
+.action-key.c5 { color: #89dceb; background: rgba(137,220,235,0.13); border: 1px solid rgba(137,220,235,0.28); }
+
+.action-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.draw-status {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #ee5a24;
+  padding: 5px 9px;
+  background: rgba(238,90,36,0.1);
+  border: 1px solid rgba(238,90,36,0.3);
+  border-radius: 5px;
+  animation: pulse-status 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
 }
 
 
@@ -260,32 +306,6 @@ html, body {
   flex: 1;
 }
 
-/* ── Hint items ── */
-
-.hint-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.hint-item + .hint-item {
-  margin-top: 6px;
-}
-
-.hint-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.hint-dot.blue   { background: #4a9eff; }
-.hint-dot.orange { background: #ee5a24; }
-.hint-dot.red    { background: #f38ba8; }
-.hint-dot.muted  { background: var(--border); }
 
 /* ── Edge context menu ── */
 
