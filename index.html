@@ -41,12 +41,7 @@
 
       <div id="manual-section">
         <div class="section-label">Instructions</div>
-        <div class="hint-box">
-          <span id="hint-text">Click canvas to add node — click node to start edge</span>
-        </div>
-        <div style="margin-top: 8px; color: var(--text-muted); font-size: 11px; line-height: 1.6;">
-          Right-click node or edge to delete
-        </div>
+        <div class="hint-box" id="hint-content"></div>
       </div>
 
       <div id="input-section" hidden>
@@ -70,6 +65,11 @@
       <div id="cy"></div>
     </main>
 
+  </div>
+
+  <div id="edge-menu" class="context-menu" hidden>
+    <button id="edge-flip-btn">↔ Flip direction</button>
+    <button id="edge-delete-btn">✕ Delete edge</button>
   </div>
 
   <script type="module" src="src/app.js"></script>
