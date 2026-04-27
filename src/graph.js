@@ -66,39 +66,38 @@ export function initGraph(options) {
 
   // Middle mouse button pan
   const cyContainer = document.getElementById('cy');
-  let midPanning = false, midPanStart = null, midPanOrigin = null;
+  let midPanning = false, lastMidX = 0, lastMidY = 0;
 
   cyContainer.addEventListener('pointerdown', e => {
     if (e.button !== 1) return;
     e.preventDefault();
-    midPanning   = true;
-    midPanStart  = { x: e.clientX, y: e.clientY };
-    midPanOrigin = cy.pan();
+    e.stopImmediatePropagation();
+    midPanning = true;
+    lastMidX = e.clientX;
+    lastMidY = e.clientY;
     cyContainer.setPointerCapture(e.pointerId);
     cyContainer.style.cursor = 'grabbing';
-    cy.userPanningEnabled(false);
-  });
+  }, true);
 
   cyContainer.addEventListener('pointermove', e => {
     if (!midPanning) return;
-    cy.pan({
-      x: midPanOrigin.x + (e.clientX - midPanStart.x),
-      y: midPanOrigin.y + (e.clientY - midPanStart.y),
-    });
-  });
+    e.stopImmediatePropagation();
+    cy.panBy({ x: e.clientX - lastMidX, y: e.clientY - lastMidY });
+    lastMidX = e.clientX;
+    lastMidY = e.clientY;
+  }, true);
 
   cyContainer.addEventListener('pointerup', e => {
     if (!midPanning || e.button !== 1) return;
+    e.stopImmediatePropagation();
     midPanning = false;
     cyContainer.style.cursor = '';
-    cy.userPanningEnabled(true);
-  });
+  }, true);
 
   cyContainer.addEventListener('pointercancel', () => {
     if (!midPanning) return;
     midPanning = false;
     cyContainer.style.cursor = '';
-    cy.userPanningEnabled(true);
   });
 
   // Sync dot grid with pan/zoom
