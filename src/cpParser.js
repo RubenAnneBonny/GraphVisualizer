@@ -1,4 +1,4 @@
-export function parseCp(text, weighted) {
+export function parseCp(text, weighted, zeroIndexed = false) {
   const lines = text
     .trim()
     .split('\n')
@@ -19,9 +19,11 @@ export function parseCp(text, weighted) {
   if (lines.length - 1 < m)
     throw new Error(`Expected ${m} edge lines but only found ${lines.length - 1}.`);
 
+  const base = zeroIndexed ? 0 : 1;
+
   const nodes = Array.from({ length: n }, (_, i) => ({
-    id: String(i + 1),
-    label: String(i + 1),
+    id: String(i + base),
+    label: String(i + base),
   }));
 
   const edges = [];
@@ -36,10 +38,12 @@ export function parseCp(text, weighted) {
 
     if (isNaN(u) || isNaN(v))
       throw new Error(`Edge line ${i + 1}: u and v must be integers.`);
-    if (u < 1 || u > n)
-      throw new Error(`Edge line ${i + 1}: node ${u} is out of range [1, ${n}].`);
-    if (v < 1 || v > n)
-      throw new Error(`Edge line ${i + 1}: node ${v} is out of range [1, ${n}].`);
+
+    const lo = base, hi = base + n - 1;
+    if (u < lo || u > hi)
+      throw new Error(`Edge line ${i + 1}: node ${u} is out of range [${lo}, ${hi}].`);
+    if (v < lo || v > hi)
+      throw new Error(`Edge line ${i + 1}: node ${v} is out of range [${lo}, ${hi}].`);
 
     edges.push({
       id: `e${i + 1}`,

@@ -1,8 +1,9 @@
 import { parseCp } from './cpParser.js';
 import { initGraph, updateStyle, loadGraph, clearGraph } from './graph.js';
 
-let directed = false;
-let weighted = false;
+let directed    = false;
+let weighted    = false;
+let zeroIndexed = false;
 let mode = 'manual';
 
 const directedToggle = document.getElementById('directed-toggle');
@@ -13,7 +14,8 @@ const manualSection  = document.getElementById('manual-section');
 const inputSection   = document.getElementById('input-section');
 const hintContent    = document.getElementById('hint-content');
 const drawStatus     = document.getElementById('draw-status');
-const parseBtn       = document.getElementById('parse-btn');
+const zeroIndexedToggle = document.getElementById('zero-indexed-toggle');
+const parseBtn          = document.getElementById('parse-btn');
 const cpInput        = document.getElementById('cp-input');
 const parseError     = document.getElementById('parse-error');
 const clearBtn       = document.getElementById('clear-btn');
@@ -78,10 +80,14 @@ inputBtn.addEventListener('click', () => {
   manualSection.hidden = true;
 });
 
+zeroIndexedToggle.addEventListener('change', () => {
+  zeroIndexed = zeroIndexedToggle.checked;
+});
+
 parseBtn.addEventListener('click', () => {
   parseError.textContent = '';
   try {
-    const { nodes, edges } = parseCp(cpInput.value, weighted);
+    const { nodes, edges } = parseCp(cpInput.value, weighted, zeroIndexed);
     loadGraph(nodes, edges);
   } catch (err) {
     parseError.textContent = err.message;
