@@ -22,18 +22,27 @@ const clearBtn       = document.getElementById('clear-btn');
 function a(color, key, desc) {
   return `<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
     <kbd style="color:${color};background:${color}25;border:1px solid ${color}55;font:600 11px/1.2 inherit;padding:3px 8px;border-radius:5px;white-space:nowrap;font-style:normal;letter-spacing:0.01em">${key}</kbd>
-    <span style="font-size:12px;color:#6c7086">${desc}</span>
+    <span style="font-size:12px;color:${color}cc">${desc}</span>
   </div>`;
+}
+
+function sep(label) {
+  return `<div style="margin:10px 0 8px;border-top:1px solid #44445a;padding-top:8px;font-size:10px;font-weight:700;color:#6c7086;letter-spacing:0.08em;text-transform:uppercase">${label}</div>`;
 }
 
 function renderActions() {
   hintContent.innerHTML =
+    sep('Drawing') +
     a('#89b4fa', 'Click canvas',      'add a node') +
     a('#89dceb', 'Click node',        'start edge') +
     a('#a6e3a1', 'Click 2nd node',    'complete edge') +
-    a('#f9e2af', 'Right-click node',  'delete') +
+    a('#f9e2af', 'Right-click node',  'delete node') +
     (directed ? a('#fab387', 'Double-click edge', 'flip direction') : '') +
-    a('#f38ba8', 'Right-click edge',  'delete');
+    a('#f38ba8', 'Right-click edge',  'delete edge') +
+    sep('Navigation') +
+    a('#ff79c6', 'Drag canvas',        'pan view') +
+    a('#bd93f9', 'Middle click drag',  'pan view') +
+    a('#50fa7b', 'Scroll wheel',       'zoom in / out');
 }
 
 initGraph({
