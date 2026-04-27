@@ -4,12 +4,10 @@ let cy;
 let edgeCounter = 0;
 let pendingSource = null;
 let didDrag = false;
-let selectedEdge = null;
 let getDirected;
 let getWeighted;
 let getMode;
 let onPendingSourceChange;
-let edgeMenu, edgeFlipBtn, edgeDeleteBtn, menuOverlay;
 
 function nextNodeId() {
   const used = new Set(
@@ -21,22 +19,6 @@ function nextNodeId() {
   let i = 1;
   while (used.has(i)) i++;
   return String(i);
-}
-
-function showEdgeMenu(x, y, edge) {
-  selectedEdge = edge;
-  edgeFlipBtn.hidden = false;
-  edgeMenu.hidden = false;
-  menuOverlay.style.display = 'block';
-  const menuW = 160, menuH = 72;
-  edgeMenu.style.left = `${Math.min(x, window.innerWidth  - menuW - 8)}px`;
-  edgeMenu.style.top  = `${Math.min(y, window.innerHeight - menuH - 8)}px`;
-}
-
-function hideEdgeMenu() {
-  edgeMenu.hidden = true;
-  menuOverlay.style.display = 'none';
-  selectedEdge = null;
 }
 
 function flipEdge(edge) {
@@ -69,14 +51,6 @@ export function initGraph(options) {
   getMode = options.getMode;
   onPendingSourceChange = options.onPendingSourceChange;
 
-  edgeMenu      = document.getElementById('edge-menu');
-  edgeFlipBtn   = document.getElementById('edge-flip-btn');
-  edgeDeleteBtn = document.getElementById('edge-delete-btn');
-  menuOverlay   = document.getElementById('menu-overlay');
-
-  // Overlay click closes the menu (no other side effects)
-  menuOverlay.addEventListener('click', () => hideEdgeMenu());
-
   cy = cytoscape({
     container: document.getElementById('cy'),
     style: buildStylesheet(getDirected(), getWeighted()),
@@ -91,6 +65,7 @@ export function initGraph(options) {
   cy.on('tapstart', () => { didDrag = false; });
   cy.on('drag', 'node', () => { didDrag = true; });
 
+  // Background tap: add node or cancel pending edge
   cy.on('tap', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
@@ -114,6 +89,7 @@ export function initGraph(options) {
     );
   });
 
+  // Node tap: start or complete an edge
   cy.on('tap', 'node', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
@@ -150,6 +126,12 @@ export function initGraph(options) {
     }
   });
 
+  // Double-tap edge: flip direction (directed mode only)
+  cy.on('dbltap', 'edge', evt => {
+    if (getDirected()) flipEdge(evt.target);
+  });
+
+  // Right-click node: delete
   cy.on('cxttap', 'node', evt => {
     evt.originalEvent.preventDefault();
     const node = evt.target;
@@ -161,40 +143,23 @@ export function initGraph(options) {
     );
   });
 
+  // Right-click edge: delete
   cy.on('cxttap', 'edge', evt => {
     evt.originalEvent.preventDefault();
-    if (getDirected()) {
-      showEdgeMenu(evt.originalEvent.clientX, evt.originalEvent.clientY, evt.target);
-    } else {
-      const edge = evt.target;
-      edge.animate(
-        { style: { opacity: 0, width: 0 } },
-        { duration: 200, complete: () => edge.remove() }
-      );
-    }
-  });
-
-  cy.on('mouseover', 'node', evt => {
-    if (!evt.target.hasClass('pending-source')) evt.target.addClass('hovering');
-  });
-  cy.on('mouseout', 'node', evt => evt.target.removeClass('hovering'));
-  cy.on('mouseover', 'edge', evt => evt.target.addClass('hovering'));
-  cy.on('mouseout', 'edge', evt => evt.target.removeClass('hovering'));
-
-  edgeFlipBtn.addEventListener('click', () => {
-    if (selectedEdge) flipEdge(selectedEdge);
-    hideEdgeMenu();
-  });
-
-  edgeDeleteBtn.addEventListener('click', () => {
-    if (!selectedEdge) return;
-    const edge = selectedEdge;
-    hideEdgeMenu();
+    const edge = evt.target;
     edge.animate(
       { style: { opacity: 0, width: 0 } },
       { duration: 200, complete: () => edge.remove() }
     );
   });
+
+  // Hover glow
+  cy.on('mouseover', 'node', evt => {
+    if (!evt.target.hasClass('pending-source')) evt.target.addClass('hovering');
+  });
+  cy.on('mouseout',  'node', evt => evt.target.removeClass('hovering'));
+  cy.on('mouseover', 'edge', evt => evt.target.addClass('hovering'));
+  cy.on('mouseout',  'edge', evt => evt.target.removeClass('hovering'));
 }
 
 export function updateStyle() {
@@ -203,7 +168,6 @@ export function updateStyle() {
 
 export function loadGraph(nodes, edges) {
   clearPendingSource();
-  hideEdgeMenu();
   cy.elements().remove();
 
   cy.add(nodes.map(n => ({ group: 'nodes', data: { id: n.id, label: n.label } })));
@@ -236,7 +200,6 @@ export function loadGraph(nodes, edges) {
 
 export function clearGraph() {
   clearPendingSource();
-  hideEdgeMenu();
   const all = cy.elements();
   edgeCounter = 0;
   if (all.length === 0) return;

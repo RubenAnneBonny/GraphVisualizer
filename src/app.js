@@ -27,11 +27,12 @@ function a(color, key, desc) {
 
 function renderActions() {
   hintContent.innerHTML =
-    a('#f38ba8', 'Click canvas',     'add a node') +
-    a('#fab387', 'Click node',       'start edge') +
-    a('#f9e2af', 'Click 2nd node',   'complete edge') +
-    a('#a6e3a1', 'Right-click node', 'delete') +
-    a('#89dceb', 'Right-click edge', directed ? 'flip or delete' : 'delete');
+    a('#89b4fa', 'Click canvas',      'add a node') +
+    a('#89dceb', 'Click node',        'start edge') +
+    a('#a6e3a1', 'Click 2nd node',    'complete edge') +
+    a('#f9e2af', 'Right-click node',  'delete') +
+    (directed ? a('#fab387', 'Double-click edge', 'flip direction') : '') +
+    a('#f38ba8', 'Right-click edge',  'delete');
 }
 
 initGraph({
