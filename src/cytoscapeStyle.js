@@ -7,9 +7,10 @@ export function buildStylesheet(directed, weighted) {
     {
       selector: 'node',
       style: {
+        'background-color': '#7c3aed',
         'background-fill': 'radial-gradient',
-        'background-gradient-stop-colors': '#c4b5fd #7c3aed',
-        'background-gradient-stop-positions': '0% 100%',
+        'background-gradient-stop-colors': '#c4b5fd #6d28d9',
+        'background-gradient-stop-positions': '25% 100%',
         'border-color': '#5b21b6',
         'border-width': 2,
         'label': 'data(label)',
@@ -31,7 +32,10 @@ export function buildStylesheet(directed, weighted) {
     {
       selector: 'node.hovering',
       style: {
-        'background-gradient-stop-colors': '#ddd6fe #8b5cf6',
+        'background-color': '#8b5cf6',
+        'background-fill': 'radial-gradient',
+        'background-gradient-stop-colors': '#ddd6fe #7c3aed',
+        'background-gradient-stop-positions': '25% 100%',
         'border-color': '#7c3aed',
         'border-width': 3,
         'shadow-blur': 24,
@@ -41,10 +45,11 @@ export function buildStylesheet(directed, weighted) {
     {
       selector: 'node:selected',
       style: {
+        'background-color': '#f59e0b',
         'background-fill': 'radial-gradient',
-        'background-gradient-stop-colors': '#fde68a #f59e0b',
-        'background-gradient-stop-positions': '0% 100%',
-        'border-color': '#d97706',
+        'background-gradient-stop-colors': '#fde68a #d97706',
+        'background-gradient-stop-positions': '25% 100%',
+        'border-color': '#b45309',
         'border-width': 3,
         'shadow-blur': 20,
         'shadow-color': '#f59e0b',
@@ -54,9 +59,10 @@ export function buildStylesheet(directed, weighted) {
     {
       selector: 'node.pending-source',
       style: {
+        'background-color': '#dc2626',
         'background-fill': 'radial-gradient',
-        'background-gradient-stop-colors': '#fca5a5 #dc2626',
-        'background-gradient-stop-positions': '0% 100%',
+        'background-gradient-stop-colors': '#fca5a5 #b91c1c',
+        'background-gradient-stop-positions': '25% 100%',
         'border-color': '#991b1b',
         'border-width': 3,
         'shadow-blur': 24,
