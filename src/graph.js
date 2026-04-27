@@ -114,16 +114,11 @@ export function initGraph(options) {
   cy.on('tapstart', () => { didDrag = false; });
   cy.on('drag', 'node', () => { didDrag = true; });
 
-  // Background tap: add node or cancel pending edge
+  // Background tap: add node (and complete pending edge if one is in progress)
   cy.on('tap', evt => {
     if (getMode() !== 'manual') return;
     if (didDrag) return;
     if (evt.target !== cy) return;
-
-    if (pendingSource !== null) {
-      clearPendingSource();
-      return;
-    }
 
     const id = nextNodeId();
     const node = cy.add({
@@ -136,6 +131,26 @@ export function initGraph(options) {
       { style: { opacity: 1, width: NODE_SIZE, height: NODE_SIZE } },
       { duration: 280, easing: 'ease-out-cubic' }
     );
+
+    if (pendingSource !== null) {
+      edgeCounter++;
+      const edgeId = `e${edgeCounter}`;
+      let weight = 1;
+      if (getWeighted()) {
+        const raw = window.prompt('Edge weight:', '1');
+        if (raw !== null) {
+          const parsed = parseFloat(raw);
+          weight = isNaN(parsed) ? 1 : parsed;
+        }
+      }
+      const edge = cy.add({
+        group: 'edges',
+        data: { id: edgeId, source: pendingSource, target: id, weight },
+      });
+      edge.style({ opacity: 0, width: 0 });
+      edge.animate({ style: { opacity: 1, width: 2 } }, { duration: 300, easing: 'ease-out-cubic' });
+      clearPendingSource();
+    }
   });
 
   // Node tap: start or complete an edge
