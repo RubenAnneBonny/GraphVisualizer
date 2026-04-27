@@ -120,6 +120,9 @@ export function initGraph(options) {
     if (didDrag) return;
     if (evt.target !== cy) return;
 
+    const fromSource = pendingSource;
+    if (fromSource !== null) clearPendingSource();
+
     const id = nextNodeId();
     const node = cy.add({
       group: 'nodes',
@@ -132,7 +135,7 @@ export function initGraph(options) {
       { duration: 280, easing: 'ease-out-cubic' }
     );
 
-    if (pendingSource !== null) {
+    if (fromSource !== null) {
       edgeCounter++;
       const edgeId = `e${edgeCounter}`;
       let weight = 1;
@@ -145,11 +148,10 @@ export function initGraph(options) {
       }
       const edge = cy.add({
         group: 'edges',
-        data: { id: edgeId, source: pendingSource, target: id, weight },
+        data: { id: edgeId, source: fromSource, target: id, weight },
       });
       edge.style({ opacity: 0, width: 0 });
       edge.animate({ style: { opacity: 1, width: 2 } }, { duration: 300, easing: 'ease-out-cubic' });
-      clearPendingSource();
     }
   });
 
