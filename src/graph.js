@@ -64,6 +64,33 @@ export function initGraph(options) {
     maxZoom: 5,
   });
 
+  // Middle mouse button pan
+  const cyContainer = document.getElementById('cy');
+  let midPanning = false, midPanStart = null, midPanOrigin = null;
+
+  cyContainer.addEventListener('mousedown', e => {
+    if (e.button !== 1) return;
+    e.preventDefault();
+    midPanning    = true;
+    midPanStart   = { x: e.clientX, y: e.clientY };
+    midPanOrigin  = cy.pan();
+    cyContainer.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!midPanning) return;
+    cy.pan({
+      x: midPanOrigin.x + (e.clientX - midPanStart.x),
+      y: midPanOrigin.y + (e.clientY - midPanStart.y),
+    });
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (e.button !== 1 || !midPanning) return;
+    midPanning = false;
+    cyContainer.style.cursor = '';
+  });
+
   // Sync dot grid with pan/zoom
   const canvasArea = document.querySelector('.canvas-area');
   const BASE_GRID = 28;
