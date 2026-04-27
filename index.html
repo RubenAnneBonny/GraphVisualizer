@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graph Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="sidebar-title">Graph Visualizer</div>
+
+      <div>
+        <div class="section-label">Settings</div>
+        <div class="toggle-row">
+          <span class="toggle-label">Directed</span>
+          <label class="toggle">
+            <input type="checkbox" id="directed-toggle" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Weighted</span>
+          <label class="toggle">
+            <input type="checkbox" id="weighted-toggle" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Mode</div>
+        <div class="mode-row">
+          <button class="mode-btn active" id="mode-manual">Manual</button>
+          <button class="mode-btn" id="mode-input">CP Input</button>
+        </div>
+      </div>
+
+      <div id="manual-section">
+        <div class="section-label">Instructions</div>
+        <div class="hint-box">
+          <span id="hint-text">Click canvas to add node — click node to start edge</span>
+        </div>
+        <div style="margin-top: 8px; color: var(--text-muted); font-size: 11px; line-height: 1.6;">
+          Right-click node or edge to delete
+        </div>
+      </div>
+
+      <div id="input-section" hidden>
+        <div class="section-label">CP Format</div>
+        <textarea
+          class="cp-textarea"
+          id="cp-input"
+          placeholder="4 4&#10;1 2&#10;1 3&#10;2 4&#10;3 4"
+          spellcheck="false"
+        ></textarea>
+        <button class="parse-btn" id="parse-btn">Parse</button>
+        <div class="parse-error" id="parse-error"></div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <button class="clear-btn" id="clear-btn">Clear Graph</button>
+    </aside>
+
+    <main class="canvas-area">
+      <div id="cy"></div>
+    </main>
+
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
