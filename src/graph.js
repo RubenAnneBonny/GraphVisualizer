@@ -76,6 +76,7 @@ export function initGraph(options) {
     midPanOrigin = cy.pan();
     cyContainer.setPointerCapture(e.pointerId);
     cyContainer.style.cursor = 'grabbing';
+    cy.userPanningEnabled(false);
   });
 
   cyContainer.addEventListener('pointermove', e => {
@@ -90,12 +91,14 @@ export function initGraph(options) {
     if (!midPanning || e.button !== 1) return;
     midPanning = false;
     cyContainer.style.cursor = '';
+    cy.userPanningEnabled(true);
   });
 
   cyContainer.addEventListener('pointercancel', () => {
     if (!midPanning) return;
     midPanning = false;
     cyContainer.style.cursor = '';
+    cy.userPanningEnabled(true);
   });
 
   // Sync dot grid with pan/zoom
