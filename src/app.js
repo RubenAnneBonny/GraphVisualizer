@@ -18,6 +18,8 @@ const parseBtn          = document.getElementById('parse-btn');
 const cpInput        = document.getElementById('cp-input');
 const parseError     = document.getElementById('parse-error');
 const clearBtn       = document.getElementById('clear-btn');
+const sidebarEl      = document.getElementById('sidebar');
+const sidebarToggle  = document.getElementById('sidebar-toggle');
 
 function a(color, key, desc) {
   return `<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
@@ -100,4 +102,9 @@ parseBtn.addEventListener('click', () => {
 
 clearBtn.addEventListener('click', () => {
   clearGraph();
+});
+
+sidebarToggle.addEventListener('click', () => {
+  const collapsed = sidebarEl.classList.toggle('collapsed');
+  sidebarToggle.textContent = collapsed ? '›' : '‹';
 });
