@@ -74,7 +74,7 @@ export function buildStylesheet(directed, weighted) {
         'font-family': '"JetBrains Mono", "Fira Code", monospace',
         'color': '#e2e8f0',
         'text-rotation': 'none',
-        'text-margin-y': -10,
+        'text-margin-y': 0,
         'text-background-color': '#1e1e2e',
         'text-background-opacity': weighted ? 1 : 0,
         'text-background-shape': 'roundrectangle',
